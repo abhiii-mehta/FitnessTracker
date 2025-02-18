@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import type { StreakData, Workout, BodyMeasurement } from '../types';
 import { useWorkout } from '../context/WorkoutContext';
 import { StreakStats } from './streaks/StreakStats';
-import { WeightTracker } from './streaks/WeightTracker';
 import { ActivityCalendar } from './streaks/ActivityCalendar';
 import { MeasurementModal } from './streaks/MeasurementModal';
 import { WorkoutLogger } from './streaks/WorkoutLogger';
@@ -121,6 +120,11 @@ export const StreakTracker: React.FC = () => {
     });
   };
 
+  const handleAddActivity = (date: string) => {
+    setSelectedDate(date);
+    setShowWorkoutLogger(true);
+  };
+
   const handleEditWorkout = (date: string) => {
     setSelectedDate(date);
     setShowWorkoutLogger(true);
@@ -215,59 +219,49 @@ export const StreakTracker: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Progress Tracker</h2>
-      
-      <StreakStats streakData={streakData} />
-      
-      <div className="mt-8 space-y-6">
-        <WeightTracker
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-6 text-gray-800">Progress Tracker</h2>
+        <StreakStats streakData={streakData} />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <ActivityCalendar
+          activityData={Object.entries(streakData.workoutDates).map(([date, data]) => ({
+            date,
+            workout: data.workout,
+            measurements: data.measurements,
+            personalRecords: data.personalRecords
+          }))}
+          onAddActivity={handleAddActivity}
+          onEditWorkout={handleEditWorkout}
+          onDeleteWorkout={handleDeleteWorkout}
+          onEditMeasurement={handleEditMeasurement}
+          onDeleteMeasurement={handleDeleteMeasurement}
+          onEditPR={(date, prId) => {
+            setSelectedDate(date);
+            // Show PR form with existing data
+          }}
+          onDeletePR={(date, prId) => {
+            setSelectedDate(date);
+            // Delete PR
+          }}
+          onShowInfo={setInfoText}
+        />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800">Progress Graph</h3>
+        <ProgressGraph
           measurements={Object.entries(streakData.workoutDates)
             .filter(([_, data]) => data.measurements)
             .map(([date, data]) => ({
               date,
               ...data.measurements!
             }))}
-          onAddMeasurement={() => {
-            setSelectedDate(new Date().toISOString().split('T')[0]);
-            setShowMeasurements(true);
-          }}
+          type="weight"
         />
-
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold mb-4">Progress Graph</h3>
-          <ProgressGraph
-            measurements={Object.entries(streakData.workoutDates)
-              .filter(([_, data]) => data.measurements)
-              .map(([date, data]) => ({
-                date,
-                ...data.measurements!
-              }))}
-            type="weight"
-          />
-        </div>
       </div>
-
-      <ActivityCalendar
-        activityData={Object.entries(streakData.workoutDates).map(([date, data]) => ({
-          date,
-          workout: data.workout,
-          measurements: data.measurements
-        }))}
-        onAddWorkout={(date) => {
-          setSelectedDate(date);
-          setShowWorkoutLogger(true);
-        }}
-        onEditWorkout={handleEditWorkout}
-        onDeleteWorkout={handleDeleteWorkout}
-        onAddMeasurement={(date) => {
-          setSelectedDate(date);
-          setShowMeasurements(true);
-        }}
-        onEditMeasurement={handleEditMeasurement}
-        onDeleteMeasurement={handleDeleteMeasurement}
-        onShowInfo={setInfoText}
-      />
 
       {infoText && (
         <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg max-w-xs whitespace-pre-line">

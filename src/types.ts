@@ -70,6 +70,17 @@ export interface BodyMeasurement {
   units: 'metric' | 'us';
 }
 
+export interface PersonalRecord {
+  id: string;
+  date: string;
+  exerciseId?: string;
+  exerciseName: string;
+  weight: number;
+  reps: number;
+  notes?: string;
+  units: 'metric' | 'us';
+}
+
 export interface StreakData {
   currentStreak: number;
   longestStreak: number;
@@ -88,6 +99,7 @@ export interface StreakData {
       bodyFat?: number;
       units: 'metric' | 'us';
     };
+    personalRecords?: PersonalRecord[];
   }>;
   measurements: BodyMeasurement[];
 }
