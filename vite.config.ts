@@ -11,5 +11,22 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-  base: '/', // Explicitly set base URL to root
+  base: '',
+  resolve: {
+    alias: {
+      '@': '/src',
+    },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
 });

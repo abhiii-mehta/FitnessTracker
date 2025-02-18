@@ -10,7 +10,6 @@ export const CalorieTracker: React.FC = () => {
   const [newFood, setNewFood] = useState('');
   const [newCalories, setNewCalories] = useState('');
 
-  // Save logs to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('calorieLogs', JSON.stringify(logs));
   }, [logs]);

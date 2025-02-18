@@ -1,7 +1,7 @@
 export interface Exercise {
   id: string;
   name: string;
-  category: 'strength' | 'hypertrophy';
+  category: 'strength' | 'hypertrophy' | 'endurance';
   muscleGroup: string;
   subGroup?: string;
   equipment: 'bodyweight' | 'dumbbell' | 'barbell' | 'machine' | 'resistance band' | 'specialized harness' | 'trap bar' | 'plate';
@@ -60,4 +60,34 @@ export interface UserStats {
   weightChangeRate?: number;
   weightChangePeriod: 'week' | 'month';
   units: 'metric' | 'us';
+}
+
+export interface BodyMeasurement {
+  date: string;
+  weight: number;
+  height?: number;
+  bodyFat?: number;
+  units: 'metric' | 'us';
+}
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  totalWorkouts: number;
+  lastWorkoutDate: string | null;
+  workoutDates: Record<string, {
+    workout?: {
+      workoutName: string;
+      exercises: string[];
+      notes?: string;
+      duration?: number;
+    };
+    measurements?: {
+      weight: number;
+      height?: number;
+      bodyFat?: number;
+      units: 'metric' | 'us';
+    };
+  }>;
+  measurements: BodyMeasurement[];
 }
