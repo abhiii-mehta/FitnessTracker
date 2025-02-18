@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Info, Calendar, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Info, Calendar, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { PersonalRecord } from '../../types';
 
 interface ActivityCalendarProps {
@@ -41,6 +41,7 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
   onShowInfo
 }) => {
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   const getDateInfo = (date: string, workout?: any, measurements?: any, personalRecords?: PersonalRecord[]) => {
     const parts = [];
@@ -70,13 +71,30 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
 
   const generateCalendarDays = () => {
     const days = [];
-    const startDate = new Date();
-    startDate.setDate(1);
-    const today = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
-    let currentDate = new Date(startDate);
+    // Create a date object for the first day of the current month
+    const firstDayOfMonth = new Date(year, month, 1);
+    // Get the last day of the current month
+    const lastDayOfMonth = new Date(year, month + 1, 0);
     
-    while (currentDate <= today) {
+    // Get the day of the week for the first day (0 = Sunday, 6 = Saturday)
+    const firstDayWeekday = firstDayOfMonth.getDay();
+    
+    // Add padding days from previous month
+    for (let i = 0; i < firstDayWeekday; i++) {
+      const paddingDate = new Date(year, month, -i);
+      days.push({
+        date: paddingDate.toISOString().split('T')[0],
+        isPadding: true
+      });
+    }
+    days.reverse(); // Reverse the padding days to get correct order
+    
+    // Add current month days
+    for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
+      const currentDate = new Date(year, month, day);
       const dateString = currentDate.toISOString().split('T')[0];
       const activity = activityData.find(a => a.date === dateString);
       
@@ -84,20 +102,60 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
         date: dateString,
         workout: activity?.workout,
         measurements: activity?.measurements,
-        personalRecords: activity?.personalRecords
+        personalRecords: activity?.personalRecords,
+        isPadding: false
       });
-      
-      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Add padding days for next month
+    const lastDayWeekday = lastDayOfMonth.getDay();
+    const remainingDays = 6 - lastDayWeekday;
+    for (let i = 1; i <= remainingDays; i++) {
+      const paddingDate = new Date(year, month + 1, i);
+      days.push({
+        date: paddingDate.toISOString().split('T')[0],
+        isPadding: true
+      });
     }
     
     return days;
   };
 
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
   const calendarDays = generateCalendarDays();
+  const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
   return (
     <div className="mt-8">
-      <h3 className="text-xl font-semibold mb-4">Activity Calendar</h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl font-semibold">Activity Calendar</h3>
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigateMonth('prev')}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <span className="text-lg font-medium">{monthName}</span>
+          <button
+            onClick={() => navigateMonth('next')}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
       <div className="grid grid-cols-7 gap-2">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="text-center text-sm font-medium text-gray-500">
@@ -105,16 +163,23 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
           </div>
         ))}
         
-        {calendarDays.map(({ date, workout, measurements, personalRecords }) => {
+        {calendarDays.map(({ date, workout, measurements, personalRecords, isPadding }) => {
           const hasData = workout || measurements || (personalRecords && personalRecords.length > 0);
           const isHovered = hoveredDate === date;
-          const currentDate = new Date(date);
+          const dateObj = new Date(date);
+          const isToday = new Date().toISOString().split('T')[0] === date;
           
           return (
             <div
               key={date}
               className={`aspect-square rounded-lg relative group ${
-                hasData ? 'bg-blue-500' : 'bg-gray-200'
+                isPadding 
+                  ? 'bg-gray-100'
+                  : hasData 
+                    ? 'bg-blue-500' 
+                    : isToday
+                      ? 'bg-blue-100'
+                      : 'bg-gray-200'
               }`}
               onMouseEnter={() => {
                 setHoveredDate(date);
@@ -127,8 +192,16 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
                 onShowInfo('');
               }}
             >
-              <div className="absolute top-1 left-1 text-xs text-white">
-                {currentDate.getDate()}
+              <div className={`absolute top-1 left-1 text-xs ${
+                isPadding 
+                  ? 'text-gray-400' 
+                  : hasData 
+                    ? 'text-white' 
+                    : isToday
+                      ? 'text-blue-600 font-bold'
+                      : 'text-gray-600'
+              }`}>
+                {dateObj.getDate()}
               </div>
 
               {/* Activity Indicators */}
@@ -147,60 +220,62 @@ export const ActivityCalendar: React.FC<ActivityCalendarProps> = ({
               )}
 
               {/* Action Buttons */}
-              <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition-opacity rounded-lg
-                ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                {!hasData ? (
-                  <button
-                    onClick={() => onAddActivity(date)}
-                    className="p-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
-                    title="Add Activity"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                ) : (
-                  <div className="flex gap-2">
-                    {workout && (
-                      <button
-                        onClick={() => onEditWorkout(date)}
-                        className="p-2 bg-white text-blue-500 rounded-lg hover:bg-gray-100 transition-colors"
-                        title="Edit Workout"
-                      >
-                        <Edit2 className="w-5 h-5" />
-                      </button>
-                    )}
-                    {measurements && (
-                      <button
-                        onClick={() => onEditMeasurement(date)}
-                        className="p-2 bg-white text-purple-500 rounded-lg hover:bg-gray-100 transition-colors"
-                        title="Edit Measurements"
-                      >
-                        <Edit2 className="w-5 h-5" />
-                      </button>
-                    )}
-                    {personalRecords?.map(pr => (
-                      <button
-                        key={pr.id}
-                        onClick={() => onEditPR(date, pr.id)}
-                        className="p-2 bg-white text-yellow-500 rounded-lg hover:bg-gray-100 transition-colors"
-                        title={`Edit PR: ${pr.exerciseName}`}
-                      >
-                        <Edit2 className="w-5 h-5" />
-                      </button>
-                    ))}
+              {!isPadding && (
+                <div className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 transition-opacity rounded-lg
+                  ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                  {!hasData ? (
                     <button
-                      onClick={() => {
-                        if (workout) onDeleteWorkout(date);
-                        if (measurements) onDeleteMeasurement(date);
-                        if (personalRecords) personalRecords.forEach(pr => onDeletePR(date, pr.id));
-                      }}
-                      className="p-2 bg-white text-red-500 rounded-lg hover:bg-gray-100 transition-colors"
-                      title="Delete Activities"
+                      onClick={() => onAddActivity(date)}
+                      className="p-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100 transition-colors"
+                      title="Add Activity"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Plus className="w-5 h-5" />
                     </button>
-                  </div>
-                )}
-              </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      {workout && (
+                        <button
+                          onClick={() => onEditWorkout(date)}
+                          className="p-2 bg-white text-blue-500 rounded-lg hover:bg-gray-100 transition-colors"
+                          title="Edit Workout"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                      )}
+                      {measurements && (
+                        <button
+                          onClick={() => onEditMeasurement(date)}
+                          className="p-2 bg-white text-purple-500 rounded-lg hover:bg-gray-100 transition-colors"
+                          title="Edit Measurements"
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                      )}
+                      {personalRecords?.map(pr => (
+                        <button
+                          key={pr.id}
+                          onClick={() => onEditPR(date, pr.id)}
+                          className="p-2 bg-white text-yellow-500 rounded-lg hover:bg-gray-100 transition-colors"
+                          title={`Edit PR: ${pr.exerciseName}`}
+                        >
+                          <Edit2 className="w-5 h-5" />
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => {
+                          if (workout) onDeleteWorkout(date);
+                          if (measurements) onDeleteMeasurement(date);
+                          if (personalRecords) personalRecords.forEach(pr => onDeletePR(date, pr.id));
+                        }}
+                        className="p-2 bg-white text-red-500 rounded-lg hover:bg-gray-100 transition-colors"
+                        title="Delete Activities"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
