@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Navigation } from './components/Navigation';
 import { WorkoutTracker } from './components/WorkoutTracker';
 import { CalorieTracker } from './components/CalorieTracker';
-import { CalorieAdvice } from './components/CalorieAdvice';
+import { CalorieCalculator } from './components/CalorieCalculator';
 import { StreakTracker } from './components/StreakTracker';
+import { WorkoutProvider } from './context/WorkoutContext';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('workouts');
+  const [activeTab, setActiveTab] = React.useState('workouts');
 
   const renderContent = () => {
     switch (activeTab) {
@@ -14,8 +15,8 @@ function App() {
         return <WorkoutTracker />;
       case 'calories':
         return <CalorieTracker />;
-      case 'advice':
-        return <CalorieAdvice />;
+      case 'calculator':
+        return <CalorieCalculator />;
       case 'streaks':
         return <StreakTracker />;
       default:
@@ -24,12 +25,14 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="flex-1">
-        {renderContent()}
-      </main>
-    </div>
+    <WorkoutProvider>
+      <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <main className="flex-1 pt-16 lg:pt-0">
+          {renderContent()}
+        </main>
+      </div>
+    </WorkoutProvider>
   );
 }
 

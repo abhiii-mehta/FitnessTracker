@@ -3,9 +3,28 @@ export interface Exercise {
   name: string;
   category: 'strength' | 'hypertrophy';
   muscleGroup: string;
-  subGroup?: string; // For arms (biceps/triceps) and core (abs/obliques)
-  equipment: 'bodyweight' | 'dumbbell' | 'barbell' | 'machine';
+  subGroup?: string;
+  equipment: 'bodyweight' | 'dumbbell' | 'barbell' | 'machine' | 'resistance band' | 'specialized harness' | 'trap bar' | 'plate';
   description: string;
+}
+
+export interface WorkoutSet {
+  reps: number;
+  weight: number;
+  notes?: string;
+}
+
+export interface WorkoutExercise {
+  exerciseId: string;
+  exerciseName: string;
+  sets: WorkoutSet[];
+}
+
+export interface Workout {
+  id: string;
+  name: string;
+  date: string;
+  exercises: WorkoutExercise[];
 }
 
 export interface WorkoutLog {
@@ -35,6 +54,10 @@ export interface UserStats {
   height: number;
   age: number;
   gender: 'male' | 'female';
+  bodyFat?: number;
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'very' | 'extra';
   goal: 'lose' | 'maintain' | 'gain';
+  weightChangeRate?: number;
+  weightChangePeriod: 'week' | 'month';
+  units: 'metric' | 'us';
 }

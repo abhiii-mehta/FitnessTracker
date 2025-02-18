@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { UserStats } from '../types';
 
-export const CalorieAdvice: React.FC = () => {
+export const CalorieCalculator: React.FC = () => {
   const [stats, setStats] = useState<UserStats>({
     weight: 70,
     height: 170,
@@ -97,7 +97,7 @@ export const CalorieAdvice: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Calorie Advice</h2>
+      <h2 className="text-2xl font-bold mb-6">Calorie Calculator</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="space-y-4">

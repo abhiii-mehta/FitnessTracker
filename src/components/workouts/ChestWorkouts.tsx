@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { ExerciseCard } from './ExerciseCard';
 import type { Exercise } from '../../types';
 
 const exercises: Record<string, Exercise[]> = {
@@ -225,39 +225,13 @@ export const ChestWorkouts: React.FC = () => {
       {/* Exercise Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {exercises[selectedEquipment]?.map((exercise) => (
-          <div
+          <ExerciseCard
             key={exercise.id}
-            className="p-4 bg-white border rounded-lg hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold">{exercise.name}</h3>
-              {selectedExercises.includes(exercise.id) ? (
-                <button
-                  onClick={() => removeExercise(exercise.id)}
-                  className="text-red-500 hover:text-red-600 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => addExercise(exercise.id)}
-                  className="text-blue-500 hover:text-blue-600 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              )}
-            </div>
-            <p className="text-sm text-gray-600 mt-2">{exercise.description}</p>
-            <div className="mt-2 flex space-x-2">
-              <span className={`px-2 py-1 rounded-full text-xs
-                ${exercise.category === 'strength'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-purple-100 text-purple-800'
-                }`}>
-                {exercise.category}
-              </span>
-            </div>
-          </div>
+            exercise={exercise}
+            isSelected={selectedExercises.includes(exercise.id)}
+            onSelect={() => addExercise(exercise.id)}
+            onDeselect={() => removeExercise(exercise.id)}
+          />
         ))}
       </div>
 
